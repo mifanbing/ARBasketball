@@ -3,13 +3,18 @@ import SceneKit
 import ARKit
 import Vision
 
+typealias VisionVNRecognizedPointKey = Vision.VNRecognizedPointKey
+
 class MainViewController: UIViewController, ARSCNViewDelegate {
     @IBOutlet var sceneView: ARSCNView!
     
-    let dispatchQueueML = DispatchQueue(label: "rick")
+    let dispatchQueueML = DispatchQueue(label: "CameraFeedDataOutput", qos: .userInteractive)
     private var gestureProcessor = HandGestureProcessor()
     private var handPoseRequest = VNDetectHumanHandPoseRequest()
     private var lastObservationTimestamp = Date()
+    
+    var redBoxThumb = UIView()
+    var redBoxIndex = UIView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -17,6 +22,8 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
         sceneView.delegate = self
         let scene = SCNScene()
         sceneView.scene = scene
+        
+        handPoseRequest.maximumHandCount = 1
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -75,10 +82,10 @@ extension MainViewController {
                 return
             }
             // Get points for thumb and index finger.
-            let thumbPoints = try observation.recognizedPoints(forGroupKey: .handLandmarkRegionKeyThumb)
-            let indexFingerPoints = try observation.recognizedPoints(forGroupKey: .handLandmarkRegionKeyIndexFinger)
-            // Look for tip points.
-            guard let thumbTipPoint = thumbPoints[.handLandmarkKeyThumbTIP], let indexTipPoint = indexFingerPoints[.handLandmarkKeyIndexTIP] else {
+            let thumbPoints: [VisionVNRecognizedPointKey : VNRecognizedPoint] = try observation.recognizedPoints(forGroupKey: .handLandmarkRegionKeyThumb)
+            let indexFingerPoints: [VisionVNRecognizedPointKey : VNRecognizedPoint] = try observation.recognizedPoints(forGroupKey: .handLandmarkRegionKeyIndexFinger)
+//            // Look for tip points.
+            guard let thumbTipPoint = thumbPoints[VisionVNRecognizedPointKey(string: "VNHLKTTIP")], let indexTipPoint = indexFingerPoints[VisionVNRecognizedPointKey(string: "VNHLKITIP")] else {
                 return
             }
             // Ignore low confidence points.
@@ -86,8 +93,10 @@ extension MainViewController {
                 return
             }
             // Convert points from Vision coordinates to AVFoundation coordinates.
-            thumbTip = CGPoint(x: thumbTipPoint.location.x, y: 1 - thumbTipPoint.location.y)
-            indexTip = CGPoint(x: indexTipPoint.location.x, y: 1 - indexTipPoint.location.y)
+            thumbTip = CGPoint(x: thumbTipPoint.location.x, y: thumbTipPoint.location.y)
+            indexTip = CGPoint(x: indexTipPoint.location.x, y: indexTipPoint.location.y)
+            
+            
         } catch {
 //            cameraFeedSession?.stopRunning()
 //            let error = AppError.visionError(error: error)
@@ -107,12 +116,26 @@ extension MainViewController {
             return
         }
         
+        redBoxThumb.removeFromSuperview()
+        redBoxIndex.removeFromSuperview()
+        
+        //redBoxThumb = UIView(frame: CGRect(x: thumbPoint.x * sceneView.frame.width, y: thumbPoint.y * sceneView.frame.height, width: 5, height: 5))
+        redBoxThumb = UIView(frame: CGRect(x: thumbPoint.y * sceneView.frame.height, y: thumbPoint.x * sceneView.frame.width, width: 5, height: 5))
+        redBoxThumb.backgroundColor = .red
+        sceneView.addSubview(redBoxThumb)
+        
+        //redBoxIndex = UIView(frame: CGRect(x: indexPoint.x * sceneView.frame.width, y: indexPoint.y * sceneView.frame.height, width: 5, height: 5))
+        redBoxIndex = UIView(frame: CGRect(x: indexPoint.y * sceneView.frame.height, y: indexPoint.x * sceneView.frame.width, width: 5, height: 5))
+        
+        redBoxIndex.backgroundColor = .red
+        sceneView.addSubview(redBoxIndex)
+        
         // Convert points from AVFoundation coordinates to UIKit coordinates.
 //        let previewLayer = cameraView.previewLayer
 //        let thumbPointConverted = previewLayer.layerPointConverted(fromCaptureDevicePoint: thumbPoint)
 //        let indexPointConverted = previewLayer.layerPointConverted(fromCaptureDevicePoint: indexPoint)
-        
-        // Process new points
-        gestureProcessor.processPointsPair((thumbPoint, indexPoint))
+//
+//        // Process new points
+//        gestureProcessor.processPointsPair((thumbPoint, indexPoint))
     }
 }
