@@ -13,10 +13,10 @@
 		FE0558C624CF96E70054BE86 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FE0558C424CF96E70054BE86 /* Main.storyboard */; };
 		FE0558C824CF96E80054BE86 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FE0558C724CF96E80054BE86 /* Assets.xcassets */; };
 		FE0558CB24CF96E80054BE86 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FE0558C924CF96E80054BE86 /* LaunchScreen.storyboard */; };
-		FE0558D524CF99440054BE86 /* model_cpm.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = FE0558D424CF99440054BE86 /* model_cpm.mlmodel */; };
 		FE0558D924CF9BAD0054BE86 /* PredictedPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE0558D624CF9BAD0054BE86 /* PredictedPoint.swift */; };
 		FE0558DA24CF9BAD0054BE86 /* HeatmapPostProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE0558D724CF9BAD0054BE86 /* HeatmapPostProcessor.swift */; };
 		FE0558DB24CF9BAD0054BE86 /* MovingAverageFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE0558D824CF9BAD0054BE86 /* MovingAverageFilter.swift */; };
+		FED6A0EE24D72C9E0017DC3B /* HandGestureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FED6A0ED24D72C9E0017DC3B /* HandGestureProcessor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,10 +28,10 @@
 		FE0558C724CF96E80054BE86 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FE0558CA24CF96E80054BE86 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		FE0558CC24CF96E80054BE86 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		FE0558D424CF99440054BE86 /* model_cpm.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = model_cpm.mlmodel; sourceTree = "<group>"; };
 		FE0558D624CF9BAD0054BE86 /* PredictedPoint.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PredictedPoint.swift; sourceTree = "<group>"; };
 		FE0558D724CF9BAD0054BE86 /* HeatmapPostProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HeatmapPostProcessor.swift; sourceTree = "<group>"; };
 		FE0558D824CF9BAD0054BE86 /* MovingAverageFilter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MovingAverageFilter.swift; sourceTree = "<group>"; };
+		FED6A0ED24D72C9E0017DC3B /* HandGestureProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HandGestureProcessor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,10 +64,8 @@
 		FE0558BD24CF96E70054BE86 /* Tippy */ = {
 			isa = PBXGroup;
 			children = (
-				FE0558D724CF9BAD0054BE86 /* HeatmapPostProcessor.swift */,
-				FE0558D824CF9BAD0054BE86 /* MovingAverageFilter.swift */,
-				FE0558D624CF9BAD0054BE86 /* PredictedPoint.swift */,
-				FE0558D424CF99440054BE86 /* model_cpm.mlmodel */,
+				FED6A0ED24D72C9E0017DC3B /* HandGestureProcessor.swift */,
+				FEB62CA524D119D50020196D /* Tools */,
 				FE0558BE24CF96E70054BE86 /* AppDelegate.swift */,
 				FE0558C024CF96E70054BE86 /* art.scnassets */,
 				FE0558C224CF96E70054BE86 /* MainViewController.swift */,
@@ -77,6 +75,16 @@
 				FE0558CC24CF96E80054BE86 /* Info.plist */,
 			);
 			path = Tippy;
+			sourceTree = "<group>";
+		};
+		FEB62CA524D119D50020196D /* Tools */ = {
+			isa = PBXGroup;
+			children = (
+				FE0558D724CF9BAD0054BE86 /* HeatmapPostProcessor.swift */,
+				FE0558D824CF9BAD0054BE86 /* MovingAverageFilter.swift */,
+				FE0558D624CF9BAD0054BE86 /* PredictedPoint.swift */,
+			);
+			path = Tools;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -151,8 +159,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FE0558D524CF99440054BE86 /* model_cpm.mlmodel in Sources */,
 				FE0558DA24CF9BAD0054BE86 /* HeatmapPostProcessor.swift in Sources */,
+				FED6A0EE24D72C9E0017DC3B /* HandGestureProcessor.swift in Sources */,
 				FE0558D924CF9BAD0054BE86 /* PredictedPoint.swift in Sources */,
 				FE0558C324CF96E70054BE86 /* MainViewController.swift in Sources */,
 				FE0558BF24CF96E70054BE86 /* AppDelegate.swift in Sources */,
@@ -303,7 +311,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = SDG6583F54;
 				INFOPLIST_FILE = Tippy/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -322,7 +330,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = SDG6583F54;
 				INFOPLIST_FILE = Tippy/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
