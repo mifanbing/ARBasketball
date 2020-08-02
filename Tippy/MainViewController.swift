@@ -119,13 +119,11 @@ extension MainViewController {
         redBoxThumb.removeFromSuperview()
         redBoxIndex.removeFromSuperview()
         
-        //redBoxThumb = UIView(frame: CGRect(x: thumbPoint.x * sceneView.frame.width, y: thumbPoint.y * sceneView.frame.height, width: 5, height: 5))
-        redBoxThumb = UIView(frame: CGRect(x: thumbPoint.y * sceneView.frame.height, y: thumbPoint.x * sceneView.frame.width, width: 5, height: 5))
+        redBoxThumb = UIView(frame: CGRect(x: thumbPoint.y * sceneView.frame.width, y: thumbPoint.x * sceneView.frame.height, width: 5, height: 5))
         redBoxThumb.backgroundColor = .red
         sceneView.addSubview(redBoxThumb)
         
-        //redBoxIndex = UIView(frame: CGRect(x: indexPoint.x * sceneView.frame.width, y: indexPoint.y * sceneView.frame.height, width: 5, height: 5))
-        redBoxIndex = UIView(frame: CGRect(x: indexPoint.y * sceneView.frame.height, y: indexPoint.x * sceneView.frame.width, width: 5, height: 5))
+        redBoxIndex = UIView(frame: CGRect(x: indexPoint.y * sceneView.frame.width, y: indexPoint.x * sceneView.frame.height, width: 5, height: 5))
         
         redBoxIndex.backgroundColor = .red
         sceneView.addSubview(redBoxIndex)
