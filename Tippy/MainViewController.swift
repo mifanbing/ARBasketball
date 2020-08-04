@@ -13,6 +13,9 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
     private var handPoseRequest = VNDetectHumanHandPoseRequest()
     private var lastObservationTimestamp = Date()
     
+    var motherBallNode = SCNNode()
+    var currentBallCoordinate: SCNVector3!
+    
     var redBoxThumb = UIView()
     var redBoxIndex = UIView()
     
@@ -37,7 +40,6 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
         ballMaterial.diffuse.contents = UIColor.white
         motherBall.materials = [ballMaterial]
         
-        let motherBallNode = SCNNode()
         motherBallNode.position = SCNVector3(0, 0, -1)
         motherBallNode.geometry = motherBall
         sceneView.scene.rootNode.addChildNode(motherBallNode)
@@ -62,7 +64,7 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
 extension MainViewController {
     func updateCoreML() {
         guard let pixbuff = sceneView.session.currentFrame?.capturedImage else { return }
-
+        
         var thumbTip: CGPoint?
         var indexTip: CGPoint?
         
@@ -128,12 +130,33 @@ extension MainViewController {
         redBoxIndex.backgroundColor = .red
         sceneView.addSubview(redBoxIndex)
         
-        // Convert points from AVFoundation coordinates to UIKit coordinates.
-//        let previewLayer = cameraView.previewLayer
-//        let thumbPointConverted = previewLayer.layerPointConverted(fromCaptureDevicePoint: thumbPoint)
-//        let indexPointConverted = previewLayer.layerPointConverted(fromCaptureDevicePoint: indexPoint)
-//
-//        // Process new points
-//        gestureProcessor.processPointsPair((thumbPoint, indexPoint))
+        currentBallCoordinate = sceneView.projectPoint(motherBallNode.position)
+        
+        let indexX = indexPoint.y * sceneView.frame.width
+        let indexY = indexPoint.x * sceneView.frame.height
+        let deltaX = CGFloat(currentBallCoordinate.x) - indexX
+        let deltaY = CGFloat(currentBallCoordinate.y) - indexY
+        
+        print(currentBallCoordinate)
+        print("\(indexX) \(indexY)")
+        print("---")
+        
+        if abs(deltaX) < 80.0 && abs(deltaY) < 80.0 {
+            print("touch!!!")
+            let direction = SCNVector3(deltaX, deltaY, 0).normalized
+            
+            guard let currentTranform = sceneView.session.currentFrame?.camera.transform else { return }
+            
+            let directionShit = SIMD4<Float>.init(x: direction.x, y: direction.y, z: 0, w: 0)
+            let directionTransformed = currentTranform * directionShit
+            
+            motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(directionTransformed.x * 0.1),
+                                                      y: CGFloat(directionTransformed.y * 0.1),
+                                                      z: CGFloat(directionTransformed.z * 0.1),
+                                                      duration: 0.1))
+            currentBallCoordinate = SCNVector3(currentBallCoordinate.x + directionTransformed.x * 0.1,
+                                               currentBallCoordinate.y + directionTransformed.y * 0.1,
+                                               0)
+        }
     }
 }
