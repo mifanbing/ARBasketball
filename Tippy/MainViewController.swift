@@ -16,8 +16,10 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
     var motherBallNode = SCNNode()
     var currentBallCoordinate: SCNVector3!
     
-    var redBoxThumb = UIView()
-    var redBoxIndex = UIView()
+    var redBoxIndexTip = UIView()
+    var redBoxIndexMid = UIView()
+    var redBoxIndexMidRoot = UIView()
+    var redBoxIndexRoot = UIView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,7 +42,7 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
         ballMaterial.diffuse.contents = UIColor.white
         motherBall.materials = [ballMaterial]
         
-        motherBallNode.position = SCNVector3(0, 0, -1)
+        motherBallNode.position = SCNVector3(0, 0, -0.3)
         motherBallNode.geometry = motherBall
         sceneView.scene.rootNode.addChildNode(motherBallNode)
         
@@ -65,12 +67,14 @@ extension MainViewController {
     func updateCoreML() {
         guard let pixbuff = sceneView.session.currentFrame?.capturedImage else { return }
         
-        var thumbTip: CGPoint?
         var indexTip: CGPoint?
+        var indexMid: CGPoint?
+        var indexMidRoot: CGPoint?
+        var indexRoot: CGPoint?
         
         defer {
             DispatchQueue.main.sync {
-                self.processPoints(thumbTip: thumbTip, indexTip: indexTip)
+                self.processPoints(indexTip: indexTip, indexMid: indexMid, indexMidRoot: indexMidRoot, indexRoot: indexRoot)
             }
         }
 
@@ -84,21 +88,29 @@ extension MainViewController {
                 return
             }
             // Get points for thumb and index finger.
-            let thumbPoints: [VisionVNRecognizedPointKey : VNRecognizedPoint] = try observation.recognizedPoints(forGroupKey: .handLandmarkRegionKeyThumb)
             let indexFingerPoints: [VisionVNRecognizedPointKey : VNRecognizedPoint] = try observation.recognizedPoints(forGroupKey: .handLandmarkRegionKeyIndexFinger)
-//            // Look for tip points.
-            guard let thumbTipPoint = thumbPoints[VisionVNRecognizedPointKey(string: "VNHLKTTIP")], let indexTipPoint = indexFingerPoints[VisionVNRecognizedPointKey(string: "VNHLKITIP")] else {
+            // Look for tip points.
+            // root to tip
+            // thumbPoints: VNHLKTCMC VNHLKTIP VNHLKTMP VNHLKTTIP
+            // indexFingerPoints: VNHLKIMCP VNHLKIPIP VNHLKIDIP VNHLKITIP
+            guard let indexTipPoint = indexFingerPoints[VisionVNRecognizedPointKey(string: "VNHLKITIP")],
+                  let indexMidPoint = indexFingerPoints[VisionVNRecognizedPointKey(string: "VNHLKIDIP")],
+                  let indexMidRootPoint = indexFingerPoints[VisionVNRecognizedPointKey(string: "VNHLKIPIP")],
+                  let indexRootPoint = indexFingerPoints[VisionVNRecognizedPointKey(string: "VNHLKIMCP")] else {
                 return
             }
             // Ignore low confidence points.
-            guard thumbTipPoint.confidence > 0.3 && indexTipPoint.confidence > 0.3 else {
+            guard indexTipPoint.confidence > 0.3
+                    && indexMidPoint.confidence > 0.3
+                    && indexMidRootPoint.confidence > 0.3
+                    && indexRootPoint.confidence > 0.3 else {
                 return
             }
             // Convert points from Vision coordinates to AVFoundation coordinates.
-            thumbTip = CGPoint(x: thumbTipPoint.location.x, y: thumbTipPoint.location.y)
             indexTip = CGPoint(x: indexTipPoint.location.x, y: indexTipPoint.location.y)
-            
-            
+            indexMid = CGPoint(x: indexMidPoint.location.x, y: indexMidPoint.location.y)
+            indexMidRoot = CGPoint(x: indexMidRootPoint.location.x, y: indexMidRootPoint.location.y)
+            indexRoot = CGPoint(x: indexRootPoint.location.x, y: indexRootPoint.location.y)
         } catch {
 //            cameraFeedSession?.stopRunning()
 //            let error = AppError.visionError(error: error)
@@ -107,9 +119,9 @@ extension MainViewController {
         }
     }
     
-    func processPoints(thumbTip: CGPoint?, indexTip: CGPoint?) {
+    func processPoints(indexTip: CGPoint?, indexMid: CGPoint?, indexMidRoot: CGPoint?, indexRoot: CGPoint?) {
         // Check that we have both points.
-        guard let thumbPoint = thumbTip, let indexPoint = indexTip else {
+        guard let indexTipPoint = indexTip, let indexMidPoint = indexMid, let indexMidRootPoint = indexMidRoot, let indexRootPoint = indexRoot else {
             // If there were no observations for more than 2 seconds reset gesture processor.
             if Date().timeIntervalSince(lastObservationTimestamp) > 2 {
                 gestureProcessor.reset()
@@ -118,22 +130,30 @@ extension MainViewController {
             return
         }
         
-        redBoxThumb.removeFromSuperview()
-        redBoxIndex.removeFromSuperview()
+        redBoxIndexTip.removeFromSuperview()
+        redBoxIndexTip = UIView(frame: CGRect(x: indexTipPoint.y * sceneView.frame.width, y: indexTipPoint.x * sceneView.frame.height, width: 5, height: 5))
+        redBoxIndexTip.backgroundColor = .red
+        sceneView.addSubview(redBoxIndexTip)
         
-        redBoxThumb = UIView(frame: CGRect(x: thumbPoint.y * sceneView.frame.width, y: thumbPoint.x * sceneView.frame.height, width: 5, height: 5))
-        redBoxThumb.backgroundColor = .red
-        sceneView.addSubview(redBoxThumb)
+        redBoxIndexMid.removeFromSuperview()
+        redBoxIndexMid = UIView(frame: CGRect(x: indexMidPoint.y * sceneView.frame.width, y: indexMidPoint.x * sceneView.frame.height, width: 5, height: 5))
+        redBoxIndexMid.backgroundColor = .red
+        sceneView.addSubview(redBoxIndexMid)
         
-        redBoxIndex = UIView(frame: CGRect(x: indexPoint.y * sceneView.frame.width, y: indexPoint.x * sceneView.frame.height, width: 5, height: 5))
+        redBoxIndexMidRoot.removeFromSuperview()
+        redBoxIndexMidRoot = UIView(frame: CGRect(x: indexMidRootPoint.y * sceneView.frame.width, y: indexMidRootPoint.x * sceneView.frame.height, width: 5, height: 5))
+        redBoxIndexMidRoot.backgroundColor = .red
+        sceneView.addSubview(redBoxIndexMidRoot)
         
-        redBoxIndex.backgroundColor = .red
-        sceneView.addSubview(redBoxIndex)
+        redBoxIndexRoot.removeFromSuperview()
+        redBoxIndexRoot = UIView(frame: CGRect(x: indexRootPoint.y * sceneView.frame.width, y: indexRootPoint.x * sceneView.frame.height, width: 5, height: 5))
+        redBoxIndexRoot.backgroundColor = .red
+        sceneView.addSubview(redBoxIndexRoot)
         
         currentBallCoordinate = sceneView.projectPoint(motherBallNode.position)
         
-        let indexX = indexPoint.y * sceneView.frame.width
-        let indexY = indexPoint.x * sceneView.frame.height
+        let indexX = indexTipPoint.y * sceneView.frame.width
+        let indexY = indexTipPoint.x * sceneView.frame.height
         let deltaX = CGFloat(currentBallCoordinate.x) - indexX
         let deltaY = CGFloat(currentBallCoordinate.y) - indexY
         
