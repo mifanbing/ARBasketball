@@ -157,26 +157,63 @@ extension MainViewController {
         let deltaX = CGFloat(currentBallCoordinate.x) - indexX
         let deltaY = CGFloat(currentBallCoordinate.y) - indexY
         
-        print(currentBallCoordinate)
-        print("\(indexX) \(indexY)")
-        print("---")
+//        print(currentBallCoordinate)
+//        print("\(indexX) \(indexY)")
+//        print("---")
         
-        if abs(deltaX) < 80.0 && abs(deltaY) < 80.0 {
-            print("touch!!!")
-            let direction = SCNVector3(deltaX, deltaY, 0).normalized
-            
-            guard let currentTranform = sceneView.session.currentFrame?.camera.transform else { return }
-            
-            let directionShit = SIMD4<Float>.init(x: direction.x, y: direction.y, z: 0, w: 0)
-            let directionTransformed = currentTranform * directionShit
-            
-            motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(directionTransformed.x * 0.1),
-                                                      y: CGFloat(directionTransformed.y * 0.1),
-                                                      z: CGFloat(directionTransformed.z * 0.1),
-                                                      duration: 0.1))
-            currentBallCoordinate = SCNVector3(currentBallCoordinate.x + directionTransformed.x * 0.1,
-                                               currentBallCoordinate.y + directionTransformed.y * 0.1,
-                                               0)
-        }
+        calculateThings()
+        
+//        if abs(deltaX) < 80.0 && abs(deltaY) < 80.0 {
+//            print("touch!!!")
+//            let direction = SCNVector3(deltaX, deltaY, 0).normalized
+//            
+//            guard let currentTranform = sceneView.session.currentFrame?.camera.transform else { return }
+//            
+//            let directionShit = SIMD4<Float>.init(x: direction.x, y: direction.y, z: 0, w: 0)
+//            let directionTransformed = currentTranform * directionShit
+//            
+//            motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(directionTransformed.x * 0.1),
+//                                                      y: CGFloat(directionTransformed.y * 0.1),
+//                                                      z: CGFloat(directionTransformed.z * 0.1),
+//                                                      duration: 0.1))
+//            currentBallCoordinate = SCNVector3(currentBallCoordinate.x + directionTransformed.x * 0.1,
+//                                               currentBallCoordinate.y + directionTransformed.y * 0.1,
+//                                               0)
+//        }
+    }
+    
+    func calculateThings() {
+        let ballCoordinate = sceneView.projectPoint(motherBallNode.position)
+        let positiveX = SCNVector3(motherBallNode.position.x + 1,
+                                   motherBallNode.position.y,
+                                   motherBallNode.position.z)
+        let ballCoordinatePositiveX = sceneView.projectPoint(positiveX)
+        let positiveY = SCNVector3(motherBallNode.position.x,
+                                   motherBallNode.position.y + 1,
+                                   motherBallNode.position.z)
+        let ballCoordinatePositiveY = sceneView.projectPoint(positiveY)
+        let positiveZ = SCNVector3(motherBallNode.position.x,
+                                   motherBallNode.position.y,
+                                   motherBallNode.position.z + 1)
+        let ballCoordinatePositiveZ = sceneView.projectPoint(positiveZ)
+        
+        let x1 = ballCoordinatePositiveX.x
+        let y1 = ballCoordinatePositiveX.y
+        let x2 = ballCoordinatePositiveY.x
+        let y2 = ballCoordinatePositiveY.y
+        let x3 = ballCoordinatePositiveZ.x
+        let y3 = ballCoordinatePositiveZ.y
+
+        let A = y2 / (x1 * y2 - x2 * y1)
+        let B = y1 / (x1 * y2 - x2 * y1)
+        let C = y3 / (x1 * y3 - x3 * y1)
+        let D = y1 / (x1 * y3 - x3 * y1)
+        
+        let k = (C.power(exponential: 2) + D.power(exponential: 2) - A * C) / (A.power(exponential: 2) + B.power(exponential: 2) + C.power(exponential: 2) + D.power(exponential: 2) - 2 * A * C)
+        
+        let length = sqrt((k * A + (1 - k) * C).power(exponential: 2) + (k * B).power(exponential: 2) + (D - k * D).power(exponential: 2))
+        
+        let radius = 0.02 / length
+        print(radius)
     }
 }
