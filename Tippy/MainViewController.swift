@@ -164,25 +164,22 @@ extension MainViewController {
             isDragging = isCurved(indexTip: indexTipPoint, indexMid: indexMidPoint, indexMidRoot: indexMidRootPoint, indexRoot: indexRootPoint)
             
             if isDragging {
-                let moveX = indexX - lastIndexTipPoint!.x
-                let moveY = indexY - lastIndexTipPoint!.y
+                let moveX = indexX - lastIndexTipPoint!.y * sceneView.frame.width
+                let moveY = indexY - lastIndexTipPoint!.x * sceneView.frame.height
 
-                let direction = SCNVector3(moveX, moveY, 0).normalized
-
-                guard let currentTranform = sceneView.session.currentFrame?.camera.transform else { return }
-
-                let directionShit = SIMD4<Float>.init(x: direction.x, y: direction.y, z: 0, w: 0)
-                let directionTransformed = currentTranform.inverse * directionShit
+                let moveVector = moveBall(deltaX: Float(moveX), deltaY: Float(moveY))
                 
-                print("Camera: \(direction) Transformed: \(directionTransformed)")
-
-                motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(directionTransformed.x) * 0.01,
-                                                          y: CGFloat(directionTransformed.y) * 0.01,
-                                                          z: CGFloat(directionTransformed.z) * 0.01,
+//                print("Camera: \(moveX) \(moveY)")
+//                print("World: \(moveVector)")
+//                print("-----")
+                
+                motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(moveVector.x),
+                                                          y: CGFloat(moveVector.y),
+                                                          z: CGFloat(moveVector.z),
                                                           duration: 0.2))
-                currentBallCoordinate = SCNVector3(currentBallCoordinate.x + directionTransformed.x * 0.01,
-                                                   currentBallCoordinate.y + directionTransformed.y * 0.01,
-                                                   currentBallCoordinate.z + directionTransformed.z * 0.01)
+                currentBallCoordinate = SCNVector3(currentBallCoordinate.x + moveVector.x,
+                                                   currentBallCoordinate.y + moveVector.y,
+                                                   currentBallCoordinate.z + moveVector.z)
             }
         }
         
@@ -249,6 +246,35 @@ extension MainViewController {
         let theta = acos(cosTheta) * 180 / CGFloat.pi
         
         return theta
+    }
+    
+    private func moveBall(deltaX: Float, deltaY: Float) -> SCNVector3 {
+        let cameraTransform = sceneView.session.currentFrame!.camera.transform
+        let column0 = cameraTransform.columns.0
+        let cameraXDirection = SCNVector3(column0[0], column0[1], column0[2]).normalized
+        let column1 = cameraTransform.columns.1
+        let cameraYDirection = SCNVector3(column1[0], column1[1], column1[2]).normalized
+        
+        let shit1 = motherBallNode.position.add(v: cameraXDirection)
+        let shit2 = motherBallNode.position.add(v: cameraYDirection)
+        
+        let cameraXDirectionProject = sceneView.projectPoint(shit1)
+        let cameraYDirectionProject = sceneView.projectPoint(shit2)
+        
+        let x1 = cameraXDirectionProject.x
+        let y1 = cameraXDirectionProject.y
+        let x2 = cameraYDirectionProject.x
+        let y2 = cameraYDirectionProject.y
+        
+        let A = deltaX * y2 / (x1 * y2 - x2 * y1)
+        let B = -deltaX * y1 / (x1 * y2 - x2 * y1)
+        let C = deltaY * x2 / (x2 * y1 - x1 * y2)
+        let D = -deltaY * x1 / (x2 * y1 - x1 * y2)
+        
+        let xMove = cameraXDirection.scale(by: A + C)
+        let yMove = cameraYDirection.scale(by: B + D)
+        
+        return xMove.add(v: yMove)
     }
     
 }

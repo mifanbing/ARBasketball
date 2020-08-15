@@ -51,6 +51,14 @@ extension SCNVector3 {
         
         return SCNVector3(x: x - normal.x, y: y - normal.y, z: z - normal.z)
     }
+    
+    func scale(by a: Float) -> SCNVector3 {
+        return SCNVector3(x * a, y * a, z * a)
+    }
+    
+    func add(v: SCNVector3) -> SCNVector3 {
+        return SCNVector3(x + v.x, y + v.y, z + v.z)
+    }
 }
 
 extension Int {
