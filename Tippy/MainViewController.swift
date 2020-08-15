@@ -11,7 +11,11 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
     let dispatchQueueML = DispatchQueue(label: "CameraFeedDataOutput", qos: .userInteractive)
     private var gestureProcessor = HandGestureProcessor()
     private var handPoseRequest = VNDetectHumanHandPoseRequest()
+    
     private var lastObservationTimestamp = Date()
+    var isDragging = false
+    var isTouching = false
+    var lastIndexTipPoint: CGPoint?
     
     var motherBallNode = SCNNode()
     var currentBallCoordinate: SCNVector3!
@@ -112,10 +116,7 @@ extension MainViewController {
             indexMidRoot = CGPoint(x: indexMidRootPoint.location.x, y: indexMidRootPoint.location.y)
             indexRoot = CGPoint(x: indexRootPoint.location.x, y: indexRootPoint.location.y)
         } catch {
-//            cameraFeedSession?.stopRunning()
-//            let error = AppError.visionError(error: error)
-//            DispatchQueue.main.async {
-//                error.displayInViewController(self)
+            
         }
     }
     
@@ -157,33 +158,42 @@ extension MainViewController {
         let deltaX = CGFloat(currentBallCoordinate.x) - indexX
         let deltaY = CGFloat(currentBallCoordinate.y) - indexY
         
-//        print(currentBallCoordinate)
-//        print("\(indexX) \(indexY)")
-//        print("---")
+        let radius = calculateThings()
         
-        calculateThings()
+        if isTouching {
+            isDragging = isCurved(indexTip: indexTipPoint, indexMid: indexMidPoint, indexMidRoot: indexMidRootPoint, indexRoot: indexRootPoint)
+            
+            if isDragging {
+                let moveX = indexX - lastIndexTipPoint!.x
+                let moveY = indexY - lastIndexTipPoint!.y
+
+                let direction = SCNVector3(moveX, moveY, 0).normalized
+
+                guard let currentTranform = sceneView.session.currentFrame?.camera.transform else { return }
+
+                let directionShit = SIMD4<Float>.init(x: direction.x, y: direction.y, z: 0, w: 0)
+                let directionTransformed = currentTranform.inverse * directionShit
+                
+                print("Camera: \(direction) Transformed: \(directionTransformed)")
+
+                motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(directionTransformed.x) * 0.01,
+                                                          y: CGFloat(directionTransformed.y) * 0.01,
+                                                          z: CGFloat(directionTransformed.z) * 0.01,
+                                                          duration: 0.2))
+                currentBallCoordinate = SCNVector3(currentBallCoordinate.x + directionTransformed.x * 0.01,
+                                                   currentBallCoordinate.y + directionTransformed.y * 0.01,
+                                                   currentBallCoordinate.z + directionTransformed.z * 0.01)
+            }
+        }
         
-//        if abs(deltaX) < 80.0 && abs(deltaY) < 80.0 {
-//            print("touch!!!")
-//            let direction = SCNVector3(deltaX, deltaY, 0).normalized
-//            
-//            guard let currentTranform = sceneView.session.currentFrame?.camera.transform else { return }
-//            
-//            let directionShit = SIMD4<Float>.init(x: direction.x, y: direction.y, z: 0, w: 0)
-//            let directionTransformed = currentTranform * directionShit
-//            
-//            motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(directionTransformed.x * 0.1),
-//                                                      y: CGFloat(directionTransformed.y * 0.1),
-//                                                      z: CGFloat(directionTransformed.z * 0.1),
-//                                                      duration: 0.1))
-//            currentBallCoordinate = SCNVector3(currentBallCoordinate.x + directionTransformed.x * 0.1,
-//                                               currentBallCoordinate.y + directionTransformed.y * 0.1,
-//                                               0)
-//        }
+        if !isDragging {
+            isTouching = deltaX * deltaX + deltaY * deltaY < radius * radius
+        }
+        
+        lastIndexTipPoint = indexTipPoint
     }
     
-    func calculateThings() {
-        let ballCoordinate = sceneView.projectPoint(motherBallNode.position)
+    private func calculateThings() -> CGFloat {
         let positiveX = SCNVector3(motherBallNode.position.x + 1,
                                    motherBallNode.position.y,
                                    motherBallNode.position.z)
@@ -213,7 +223,32 @@ extension MainViewController {
         
         let length = sqrt((k * A + (1 - k) * C).power(exponential: 2) + (k * B).power(exponential: 2) + (D - k * D).power(exponential: 2))
         
-        let radius = 0.02 / length
-        print(radius)
+        let radius = CGFloat(0.02 / length)
+        
+        return radius
     }
+    
+    private func isCurved(indexTip: CGPoint, indexMid: CGPoint, indexMidRoot: CGPoint, indexRoot: CGPoint) -> Bool {
+        let angle1 = angle(point1: indexTip, point2: indexMid, point3: indexMidRoot)
+        let angle2 = angle(point1: indexMid, point2: indexMidRoot, point3: indexRoot)
+        
+        return angle1 + angle2 > 60
+    }
+    
+    private func angle(point1: CGPoint, point2: CGPoint, point3: CGPoint) -> CGFloat {
+        let line12X = point2.x - point1.x
+        let line12Y = point2.y - point1.y
+        let line23X = point3.x - point2.x
+        let line23Y = point3.y - point2.y
+        
+        let length1 = sqrt(line12X * line12X + line12Y * line12Y)
+        let length2 = sqrt(line23X * line23X + line23Y * line23Y)
+        let cosTheta = (line12X * line23X + line12Y * line23Y) / (length1 * length2)
+        
+        //could be negative but i dont care
+        let theta = acos(cosTheta) * 180 / CGFloat.pi
+        
+        return theta
+    }
+    
 }
