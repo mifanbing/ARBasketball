@@ -13,6 +13,7 @@
 		FE0558C624CF96E70054BE86 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FE0558C424CF96E70054BE86 /* Main.storyboard */; };
 		FE0558C824CF96E80054BE86 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FE0558C724CF96E80054BE86 /* Assets.xcassets */; };
 		FE0558CB24CF96E80054BE86 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FE0558C924CF96E80054BE86 /* LaunchScreen.storyboard */; };
+		FE30B01124E8163800CADED3 /* ball.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = FE30B01024E8163800CADED3 /* ball.jpeg */; };
 		FE5EE7A524D8E5100014644D /* Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5EE7A424D8E5100014644D /* Math.swift */; };
 		FED6A0EE24D72C9E0017DC3B /* HandGestureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FED6A0ED24D72C9E0017DC3B /* HandGestureProcessor.swift */; };
 /* End PBXBuildFile section */
@@ -26,6 +27,7 @@
 		FE0558C724CF96E80054BE86 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FE0558CA24CF96E80054BE86 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		FE0558CC24CF96E80054BE86 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FE30B01024E8163800CADED3 /* ball.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = ball.jpeg; sourceTree = "<group>"; };
 		FE5EE7A424D8E5100014644D /* Math.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Math.swift; sourceTree = "<group>"; };
 		FED6A0ED24D72C9E0017DC3B /* HandGestureProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HandGestureProcessor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -60,6 +62,7 @@
 		FE0558BD24CF96E70054BE86 /* Tippy */ = {
 			isa = PBXGroup;
 			children = (
+				FE30B01024E8163800CADED3 /* ball.jpeg */,
 				FE5EE7A424D8E5100014644D /* Math.swift */,
 				FED6A0ED24D72C9E0017DC3B /* HandGestureProcessor.swift */,
 				FE0558BE24CF96E70054BE86 /* AppDelegate.swift */,
@@ -134,6 +137,7 @@
 				FE0558C124CF96E70054BE86 /* art.scnassets in Resources */,
 				FE0558CB24CF96E80054BE86 /* LaunchScreen.storyboard in Resources */,
 				FE0558C824CF96E80054BE86 /* Assets.xcassets in Resources */,
+				FE30B01124E8163800CADED3 /* ball.jpeg in Resources */,
 				FE0558C624CF96E70054BE86 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

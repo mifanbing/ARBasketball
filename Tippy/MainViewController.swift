@@ -15,6 +15,7 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
     private var lastObservationTimestamp = Date()
     var isDragging = false
     var isTouching = false
+    var isShooting = false
     var lastIndexTipPoint: CGPoint?
     
     var motherBallNode = SCNNode()
@@ -43,7 +44,7 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
         sceneView.session.run(configuration)
         let motherBall = SCNSphere(radius: CGFloat(0.02))
         let ballMaterial = SCNMaterial()
-        ballMaterial.diffuse.contents = UIColor.white
+        ballMaterial.diffuse.contents = UIImage(named: "ball.jpeg")
         motherBall.materials = [ballMaterial]
         
         motherBallNode.position = SCNVector3(0, 0, -0.3)
@@ -158,39 +159,80 @@ extension MainViewController {
         let deltaX = CGFloat(currentBallCoordinate.x) - indexX
         let deltaY = CGFloat(currentBallCoordinate.y) - indexY
         
-        let radius = calculateThings()
+        let radius = calculateBallRadius()
         
         if isTouching {
             isDragging = isCurved(indexTip: indexTipPoint, indexMid: indexMidPoint, indexMidRoot: indexMidRootPoint, indexRoot: indexRootPoint)
             
-            if isDragging {
-                let moveX = indexX - lastIndexTipPoint!.y * sceneView.frame.width
-                let moveY = indexY - lastIndexTipPoint!.x * sceneView.frame.height
-
-                let moveVector = moveBall(deltaX: Float(moveX), deltaY: Float(moveY))
+            let shouldShootBall = isShooting(indexTip: indexTipPoint, indexMid: indexMidPoint, indexMidRoot: indexMidRootPoint, indexRoot: indexRootPoint)
+            
+            if shouldShootBall {
+                print("Shoot")
+                isShooting = true
+                let velocities = shootBall(cameraTransform: sceneView.session.currentFrame!.camera.transform)
+                let velocity = velocities[0]
                 
-//                print("Camera: \(moveX) \(moveY)")
-//                print("World: \(moveVector)")
-//                print("-----")
+                DispatchQueue.main.async {
+                    self.motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(velocity.x * 2),
+                                                              y: CGFloat(velocity.y * 2),
+                                                              z: CGFloat(velocity.z * 2),
+                                                              duration: 2))
+                    self.currentBallCoordinate = SCNVector3(self.currentBallCoordinate.x + velocity.x * 2,
+                                                            self.currentBallCoordinate.y + velocity.y * 2,
+                                                            self.currentBallCoordinate.z + velocity.z * 2)
+                    self.isShooting = false
+                    print("Shoot End")
+                }
                 
-                motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(moveVector.x),
-                                                          y: CGFloat(moveVector.y),
-                                                          z: CGFloat(moveVector.z),
-                                                          duration: 0.2))
-                currentBallCoordinate = SCNVector3(currentBallCoordinate.x + moveVector.x,
-                                                   currentBallCoordinate.y + moveVector.y,
-                                                   currentBallCoordinate.z + moveVector.z)
+                
+//                velocities.enumerated().forEach { index, velocity in
+//                    motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(velocity.x * 0.01),
+//                                                              y: CGFloat(velocity.y * 0.01),
+//                                                              z: CGFloat(velocity.z * 0.01),
+//                                                              duration: 0.01))
+//                    currentBallCoordinate = SCNVector3(currentBallCoordinate.x + velocity.x * 0.01,
+//                                                       currentBallCoordinate.y + velocity.y * 0.01,
+//                                                       currentBallCoordinate.z + velocity.z * 0.01)
+//
+//                    if index == velocities.count - 1 {
+//                        DispatchQueue.main.async {
+//                            self.isShooting = false
+//                            print("Shoot End")
+//                        }
+//                    }
+//                }
             }
+            
+//            if isDragging {
+//                let moveX = indexX - lastIndexTipPoint!.y * sceneView.frame.width
+//                let moveY = indexY - lastIndexTipPoint!.x * sceneView.frame.height
+//
+//                let moveVector = dragBall(deltaX: Float(moveX), deltaY: Float(moveY))
+//
+//                motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(moveVector.x),
+//                                                          y: CGFloat(moveVector.y),
+//                                                          z: CGFloat(moveVector.z),
+//                                                          duration: 0.2))
+//                currentBallCoordinate = SCNVector3(currentBallCoordinate.x + moveVector.x,
+//                                                   currentBallCoordinate.y + moveVector.y,
+//                                                   currentBallCoordinate.z + moveVector.z)
+//            }
         }
         
-        if !isDragging {
-            isTouching = deltaX * deltaX + deltaY * deltaY < radius * radius
+
+        if isShooting {
+            isTouching = false
+        } else {
+            if !isDragging {
+                isTouching = deltaX * deltaX + deltaY * deltaY < radius * radius
+            }
         }
         
         lastIndexTipPoint = indexTipPoint
     }
     
-    private func calculateThings() -> CGFloat {
+    //calculate ball radius in camera frame
+    private func calculateBallRadius() -> CGFloat {
         let positiveX = SCNVector3(motherBallNode.position.x + 1,
                                    motherBallNode.position.y,
                                    motherBallNode.position.z)
@@ -232,6 +274,13 @@ extension MainViewController {
         return angle1 + angle2 > 60
     }
     
+    private func isShooting(indexTip: CGPoint, indexMid: CGPoint, indexMidRoot: CGPoint, indexRoot: CGPoint) -> Bool {
+        let angle1 = angle(point1: indexTip, point2: indexMid, point3: indexMidRoot)
+        let angle2 = angle(point1: indexMid, point2: indexMidRoot, point3: indexRoot)
+        
+        return angle1 + angle2 > 100
+    }
+    
     private func angle(point1: CGPoint, point2: CGPoint, point3: CGPoint) -> CGFloat {
         let line12X = point2.x - point1.x
         let line12Y = point2.y - point1.y
@@ -248,7 +297,8 @@ extension MainViewController {
         return theta
     }
     
-    private func moveBall(deltaX: Float, deltaY: Float) -> SCNVector3 {
+    //drag ball in 3d space to match the hand movement in the camera frame
+    private func dragBall(deltaX: Float, deltaY: Float) -> SCNVector3 {
         let cameraTransform = sceneView.session.currentFrame!.camera.transform
         let column0 = cameraTransform.columns.0
         let cameraXDirection = SCNVector3(column0[0], column0[1], column0[2]).normalized
@@ -277,4 +327,32 @@ extension MainViewController {
         return xMove.add(v: yMove)
     }
     
+    private func shootBall(cameraTransform: simd_float4x4) -> [SCNVector3] {
+        let yAxis = cameraTransform.columns.1
+        let zAxis = cameraTransform.columns.2
+        let yAxisVector = SCNVector3(yAxis[0], yAxis[1], yAxis[2])
+        let zAxisVector = SCNVector3(-zAxis[0], -zAxis[1], -zAxis[2])
+        
+        let cosTheta = sqrt(zAxis[2].power(exponential: 2)) / sqrt(zAxis[0].power(exponential: 2) + zAxis[1].power(exponential: 2) + zAxis[2].power(exponential: 2))
+        
+        let v0: Float = 1.0
+        let theta = acos(cosTheta)
+        let timeTotal: Float = 2.0// * v0 * sin(theta) / 9.8
+        let deltaTime: Float = 0.01
+        var velocityOverTime = [SCNVector3]()
+        var timeNow: Float = 0.0
+        
+        print("angle: \(theta * 180 / 3.14) time: \(timeTotal)")
+        
+        while timeNow < timeTotal {
+            let vZ = v0 * cos(theta)
+            let vY = v0 * sin(theta) - 9.8 * timeNow
+            
+            //velocityOverTime.append(yAxisVector.scale(by: vY).add(v: zAxisVector.scale(by: vZ)))
+            velocityOverTime.append(zAxisVector.scale(by: vZ))
+            timeNow = timeNow + deltaTime
+        }
+        
+        return velocityOverTime
+    }
 }
