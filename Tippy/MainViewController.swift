@@ -161,9 +161,9 @@ extension MainViewController {
         
         let radius = calculateBallRadius()
         
+        isDragging = isCurved(indexTip: indexTipPoint, indexMid: indexMidPoint, indexMidRoot: indexMidRootPoint, indexRoot: indexRootPoint)
+        
         if isTouching {
-            isDragging = isCurved(indexTip: indexTipPoint, indexMid: indexMidPoint, indexMidRoot: indexMidRootPoint, indexRoot: indexRootPoint)
-            
             let shouldShootBall = isShooting(indexTip: indexTipPoint, indexMid: indexMidPoint, indexMidRoot: indexMidRootPoint, indexRoot: indexRootPoint)
             
             if shouldShootBall {
@@ -173,50 +173,30 @@ extension MainViewController {
                 let velocity = velocities[0]
                 
                 DispatchQueue.main.async {
-                    self.motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(velocity.x * 2),
-                                                              y: CGFloat(velocity.y * 2),
-                                                              z: CGFloat(velocity.z * 2),
+                    self.motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(velocity.x * 1),
+                                                              y: CGFloat(velocity.y * 1),
+                                                              z: CGFloat(velocity.z * 1),
                                                               duration: 2))
-                    self.currentBallCoordinate = SCNVector3(self.currentBallCoordinate.x + velocity.x * 2,
-                                                            self.currentBallCoordinate.y + velocity.y * 2,
-                                                            self.currentBallCoordinate.z + velocity.z * 2)
+                    self.currentBallCoordinate = SCNVector3(self.currentBallCoordinate.x + velocity.x * 1,
+                                                            self.currentBallCoordinate.y + velocity.y * 1,
+                                                            self.currentBallCoordinate.z + velocity.z * 1)
                     self.isShooting = false
                     print("Shoot End")
                 }
-                
-                
-//                velocities.enumerated().forEach { index, velocity in
-//                    motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(velocity.x * 0.01),
-//                                                              y: CGFloat(velocity.y * 0.01),
-//                                                              z: CGFloat(velocity.z * 0.01),
-//                                                              duration: 0.01))
-//                    currentBallCoordinate = SCNVector3(currentBallCoordinate.x + velocity.x * 0.01,
-//                                                       currentBallCoordinate.y + velocity.y * 0.01,
-//                                                       currentBallCoordinate.z + velocity.z * 0.01)
-//
-//                    if index == velocities.count - 1 {
-//                        DispatchQueue.main.async {
-//                            self.isShooting = false
-//                            print("Shoot End")
-//                        }
-//                    }
-//                }
+            } else if isDragging {
+                let moveX = indexX - lastIndexTipPoint!.y * sceneView.frame.width
+                let moveY = indexY - lastIndexTipPoint!.x * sceneView.frame.height
+
+                let moveVector = dragBall(deltaX: Float(moveX), deltaY: Float(moveY))
+
+                motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(moveVector.x),
+                                                          y: CGFloat(moveVector.y),
+                                                          z: CGFloat(moveVector.z),
+                                                          duration: 0.2))
+                currentBallCoordinate = SCNVector3(currentBallCoordinate.x + moveVector.x,
+                                                   currentBallCoordinate.y + moveVector.y,
+                                                   currentBallCoordinate.z + moveVector.z)
             }
-            
-//            if isDragging {
-//                let moveX = indexX - lastIndexTipPoint!.y * sceneView.frame.width
-//                let moveY = indexY - lastIndexTipPoint!.x * sceneView.frame.height
-//
-//                let moveVector = dragBall(deltaX: Float(moveX), deltaY: Float(moveY))
-//
-//                motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(moveVector.x),
-//                                                          y: CGFloat(moveVector.y),
-//                                                          z: CGFloat(moveVector.z),
-//                                                          duration: 0.2))
-//                currentBallCoordinate = SCNVector3(currentBallCoordinate.x + moveVector.x,
-//                                                   currentBallCoordinate.y + moveVector.y,
-//                                                   currentBallCoordinate.z + moveVector.z)
-//            }
         }
         
 
