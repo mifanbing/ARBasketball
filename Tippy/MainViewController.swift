@@ -13,9 +13,8 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
     private var handPoseRequest = VNDetectHumanHandPoseRequest()
     
     private var lastObservationTimestamp = Date()
-    var isDragging = false
-    var isTouching = false
-    var isShooting = false
+    var handState: HandState = .nonTouching
+    var ballState: BallState = .still
     var lastIndexTipPoint: CGPoint?
     
     var motherBallNode = SCNNode()
@@ -131,7 +130,74 @@ extension MainViewController {
             //cameraView.showPoints([], color: .clear)
             return
         }
+        drawJoints(indexTipPoint: indexTipPoint, indexMidPoint: indexMidPoint, indexMidRootPoint: indexMidRootPoint, indexRootPoint: indexRootPoint)
         
+        currentBallCoordinate = sceneView.projectPoint(motherBallNode.position)
+        
+        let indexX = indexTipPoint.y * sceneView.frame.width
+        let indexY = indexTipPoint.x * sceneView.frame.height
+        let deltaX = CGFloat(currentBallCoordinate.x) - indexX
+        let deltaY = CGFloat(currentBallCoordinate.y) - indexY
+        
+        let radius = calculateBallRadius()
+        let shouldShoot = shouldShootBall(indexTip: indexTipPoint, indexMid: indexMidPoint, indexMidRoot: indexMidRootPoint, indexRoot: indexRootPoint)
+        let shouldDrag = shouldDragBall(indexTip: indexTipPoint, indexMid: indexMidPoint, indexMidRoot: indexMidRootPoint, indexRoot: indexRootPoint)
+        
+        //update ballstate
+        switch handState {
+        case .nonTouching: ()
+        case .touching:
+            if shouldShoot {
+                print("Shoot")
+                ballState = .shooting
+                let velocities = shootBall(cameraTransform: sceneView.session.currentFrame!.camera.transform)
+                let velocity = velocities[0]
+
+                DispatchQueue.main.async {
+                    self.motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(velocity.x * 1),
+                                                              y: CGFloat(velocity.y * 1),
+                                                              z: CGFloat(velocity.z * 1),
+                                                              duration: 2))
+                    self.currentBallCoordinate = SCNVector3(self.currentBallCoordinate.x + velocity.x * 1,
+                                                            self.currentBallCoordinate.y + velocity.y * 1,
+                                                            self.currentBallCoordinate.z + velocity.z * 1)
+                    self.ballState = .still
+                    print("Shoot End")
+                }
+            } else if shouldDrag {
+                ballState = .dragging
+                let moveX = indexX - lastIndexTipPoint!.y * sceneView.frame.width
+                let moveY = indexY - lastIndexTipPoint!.x * sceneView.frame.height
+
+                let moveVector = dragBall(deltaX: Float(moveX), deltaY: Float(moveY))
+
+                motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(moveVector.x),
+                                                          y: CGFloat(moveVector.y),
+                                                          z: CGFloat(moveVector.z),
+                                                          duration: 0.2))
+                currentBallCoordinate = SCNVector3(currentBallCoordinate.x + moveVector.x,
+                                                   currentBallCoordinate.y + moveVector.y,
+                                                   currentBallCoordinate.z + moveVector.z)
+            } else {
+                ballState = .still
+            }
+        }
+        
+        //update hand state
+        switch ballState {
+        case .shooting:()
+        case .dragging:
+            handState = shouldDrag ? .touching : .nonTouching
+        case .still:
+            handState = deltaX * deltaX + deltaY * deltaY < radius * radius ? .touching : .nonTouching
+        }
+   
+        lastIndexTipPoint = indexTipPoint
+    }
+}
+
+extension MainViewController {
+    private func drawJoints(indexTipPoint: CGPoint, indexMidPoint: CGPoint, indexMidRootPoint: CGPoint, indexRootPoint: CGPoint) {
         redBoxIndexTip.removeFromSuperview()
         redBoxIndexTip = UIView(frame: CGRect(x: indexTipPoint.y * sceneView.frame.width, y: indexTipPoint.x * sceneView.frame.height, width: 5, height: 5))
         redBoxIndexTip.backgroundColor = .red
@@ -151,64 +217,6 @@ extension MainViewController {
         redBoxIndexRoot = UIView(frame: CGRect(x: indexRootPoint.y * sceneView.frame.width, y: indexRootPoint.x * sceneView.frame.height, width: 5, height: 5))
         redBoxIndexRoot.backgroundColor = .red
         sceneView.addSubview(redBoxIndexRoot)
-        
-        currentBallCoordinate = sceneView.projectPoint(motherBallNode.position)
-        
-        let indexX = indexTipPoint.y * sceneView.frame.width
-        let indexY = indexTipPoint.x * sceneView.frame.height
-        let deltaX = CGFloat(currentBallCoordinate.x) - indexX
-        let deltaY = CGFloat(currentBallCoordinate.y) - indexY
-        
-        let radius = calculateBallRadius()
-        
-        isDragging = isCurved(indexTip: indexTipPoint, indexMid: indexMidPoint, indexMidRoot: indexMidRootPoint, indexRoot: indexRootPoint)
-        
-        if isTouching {
-            let shouldShootBall = isShooting(indexTip: indexTipPoint, indexMid: indexMidPoint, indexMidRoot: indexMidRootPoint, indexRoot: indexRootPoint)
-            
-            if shouldShootBall {
-                print("Shoot")
-                isShooting = true
-                let velocities = shootBall(cameraTransform: sceneView.session.currentFrame!.camera.transform)
-                let velocity = velocities[0]
-                
-                DispatchQueue.main.async {
-                    self.motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(velocity.x * 1),
-                                                              y: CGFloat(velocity.y * 1),
-                                                              z: CGFloat(velocity.z * 1),
-                                                              duration: 2))
-                    self.currentBallCoordinate = SCNVector3(self.currentBallCoordinate.x + velocity.x * 1,
-                                                            self.currentBallCoordinate.y + velocity.y * 1,
-                                                            self.currentBallCoordinate.z + velocity.z * 1)
-                    self.isShooting = false
-                    print("Shoot End")
-                }
-            } else if isDragging {
-                let moveX = indexX - lastIndexTipPoint!.y * sceneView.frame.width
-                let moveY = indexY - lastIndexTipPoint!.x * sceneView.frame.height
-
-                let moveVector = dragBall(deltaX: Float(moveX), deltaY: Float(moveY))
-
-                motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(moveVector.x),
-                                                          y: CGFloat(moveVector.y),
-                                                          z: CGFloat(moveVector.z),
-                                                          duration: 0.2))
-                currentBallCoordinate = SCNVector3(currentBallCoordinate.x + moveVector.x,
-                                                   currentBallCoordinate.y + moveVector.y,
-                                                   currentBallCoordinate.z + moveVector.z)
-            }
-        }
-        
-
-        if isShooting {
-            isTouching = false
-        } else {
-            if !isDragging {
-                isTouching = deltaX * deltaX + deltaY * deltaY < radius * radius
-            }
-        }
-        
-        lastIndexTipPoint = indexTipPoint
     }
     
     //calculate ball radius in camera frame
@@ -247,14 +255,14 @@ extension MainViewController {
         return radius
     }
     
-    private func isCurved(indexTip: CGPoint, indexMid: CGPoint, indexMidRoot: CGPoint, indexRoot: CGPoint) -> Bool {
+    private func shouldDragBall(indexTip: CGPoint, indexMid: CGPoint, indexMidRoot: CGPoint, indexRoot: CGPoint) -> Bool {
         let angle1 = angle(point1: indexTip, point2: indexMid, point3: indexMidRoot)
         let angle2 = angle(point1: indexMid, point2: indexMidRoot, point3: indexRoot)
         
         return angle1 + angle2 > 60
     }
     
-    private func isShooting(indexTip: CGPoint, indexMid: CGPoint, indexMidRoot: CGPoint, indexRoot: CGPoint) -> Bool {
+    private func shouldShootBall(indexTip: CGPoint, indexMid: CGPoint, indexMidRoot: CGPoint, indexRoot: CGPoint) -> Bool {
         let angle1 = angle(point1: indexTip, point2: indexMid, point3: indexMidRoot)
         let angle2 = angle(point1: indexMid, point2: indexMidRoot, point3: indexRoot)
         
@@ -315,7 +323,7 @@ extension MainViewController {
         
         let cosTheta = sqrt(zAxis[2].power(exponential: 2)) / sqrt(zAxis[0].power(exponential: 2) + zAxis[1].power(exponential: 2) + zAxis[2].power(exponential: 2))
         
-        let v0: Float = 1.0
+        let v0: Float = 0.3
         let theta = acos(cosTheta)
         let timeTotal: Float = 2.0// * v0 * sin(theta) / 9.8
         let deltaTime: Float = 0.01
