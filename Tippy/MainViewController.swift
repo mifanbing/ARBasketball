@@ -46,7 +46,7 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
         ballMaterial.diffuse.contents = UIImage(named: "ball.jpeg")
         motherBall.materials = [ballMaterial]
         
-        motherBallNode.position = SCNVector3(0, 0, -0.3)
+        motherBallNode.position = SCNVector3(0.1, 0, -0.3)
         motherBallNode.geometry = motherBall
         sceneView.scene.rootNode.addChildNode(motherBallNode)
         
@@ -147,23 +147,24 @@ extension MainViewController {
         switch handState {
         case .nonTouching: ()
         case .touching:
-            if shouldShoot {
+            if shouldShoot  {
                 print("Shoot")
                 ballState = .shooting
                 let velocities = shootBall(cameraTransform: sceneView.session.currentFrame!.camera.transform)
-                let velocity = velocities[0]
 
-                DispatchQueue.main.async {
-                    self.motherBallNode.runAction(SCNAction.moveBy(x: CGFloat(velocity.x * 1),
-                                                              y: CGFloat(velocity.y * 1),
-                                                              z: CGFloat(velocity.z * 1),
-                                                              duration: 2))
-                    self.currentBallCoordinate = SCNVector3(self.currentBallCoordinate.x + velocity.x * 1,
-                                                            self.currentBallCoordinate.y + velocity.y * 1,
-                                                            self.currentBallCoordinate.z + velocity.z * 1)
+                let actions = velocities.map { velocity in
+                    SCNAction.moveBy(x: CGFloat(velocity.x * 0.01),
+                                     y: CGFloat(velocity.y * 0.01),
+                                     z: CGFloat(velocity.z * 0.01),
+                                     duration: 0.01)
+                }
+                let sequenceAction = SCNAction.sequence(actions)
+                motherBallNode.runAction(sequenceAction, forKey: "ShootBall") {
                     self.ballState = .still
+                    self.currentBallCoordinate = self.motherBallNode.position
                     print("Shoot End")
                 }
+                
             } else if shouldDrag {
                 ballState = .dragging
                 let moveX = indexX - lastIndexTipPoint!.y * sceneView.frame.width
@@ -185,7 +186,8 @@ extension MainViewController {
         
         //update hand state
         switch ballState {
-        case .shooting:()
+        case .shooting:
+            handState = .nonTouching
         case .dragging:
             handState = shouldDrag ? .touching : .nonTouching
         case .still:
@@ -315,29 +317,37 @@ extension MainViewController {
         return xMove.add(v: yMove)
     }
     
+    //shoot ball under faked gravity
     private func shootBall(cameraTransform: simd_float4x4) -> [SCNVector3] {
-        let yAxis = cameraTransform.columns.1
+        //X axis is pointing top. 
+        let xAxis = cameraTransform.columns.0
+        //let yAxis = cameraTransform.columns.1
         let zAxis = cameraTransform.columns.2
-        let yAxisVector = SCNVector3(yAxis[0], yAxis[1], yAxis[2])
+        let xAxisVector = SCNVector3(xAxis[0], xAxis[1], xAxis[2])
+        //let yAxisVector = SCNVector3(yAxis[0], yAxis[1], yAxis[2])
         let zAxisVector = SCNVector3(-zAxis[0], -zAxis[1], -zAxis[2])
         
         let cosTheta = sqrt(zAxis[2].power(exponential: 2)) / sqrt(zAxis[0].power(exponential: 2) + zAxis[1].power(exponential: 2) + zAxis[2].power(exponential: 2))
         
-        let v0: Float = 0.3
-        let theta = acos(cosTheta)
-        let timeTotal: Float = 2.0// * v0 * sin(theta) / 9.8
+        let v0: Float = 0.5
+        let gConstant: Float = 9.8 / 40
+        let theta = acos(cosTheta) + Float.pi / 6
         let deltaTime: Float = 0.01
         var velocityOverTime = [SCNVector3]()
         var timeNow: Float = 0.0
         
+        
+        let vZ = v0 * cos(theta)
+        let vX = -v0 * sin(theta)
+        
+        let vInit = xAxisVector.scale(by: vX).add(v: zAxisVector.scale(by: vZ))
+        let timeTotal: Float = 2.0 * vInit.y / gConstant
+        
         print("angle: \(theta * 180 / 3.14) time: \(timeTotal)")
         
         while timeNow < timeTotal {
-            let vZ = v0 * cos(theta)
-            let vY = v0 * sin(theta) - 9.8 * timeNow
-            
-            //velocityOverTime.append(yAxisVector.scale(by: vY).add(v: zAxisVector.scale(by: vZ)))
-            velocityOverTime.append(zAxisVector.scale(by: vZ))
+            let velocity = xAxisVector.scale(by: vX).add(v: zAxisVector.scale(by: vZ)).add(v: SCNVector3(0, -gConstant * timeNow, 0))
+            velocityOverTime.append(velocity)
             timeNow = timeNow + deltaTime
         }
         
