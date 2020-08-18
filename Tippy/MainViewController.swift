@@ -88,7 +88,7 @@ extension MainViewController: SCNPhysicsContactDelegate {
         
         let normal = contact.contactNormal
         let normalVelocity = ballNode.ballVelocity.normalComponent(wrt: normal).scale(by: -1)
-        let tangentVelocity = ballNode.ballVelocity.tangentComponent(wrt: normal)
+        let tangentVelocity = ballNode.ballVelocity.tangentComponent(wrt: normal).scale(by: 0.5)
         let reflectedVelocity = normalVelocity.add(v: tangentVelocity)
         
         ballNode.runAction(SCNAction.moveBy(x: CGFloat(reflectedVelocity.x * 2),
@@ -130,13 +130,13 @@ extension MainViewController {
         sceneView.scene.rootNode.addChildNode(motherBallNode)
         
         //setup walls
-        let board = SCNPlane(width: 1, height: 1)
+        let board = SCNPlane(width: 0.5, height: 0.5)
         let boardMaterial = SCNMaterial()
-        boardMaterial.diffuse.contents = UIColor(red: 0, green: 1, blue: 0, alpha: 0.8)
+        boardMaterial.diffuse.contents = UIImage(named: "board.png")
         board.materials = [boardMaterial]
         
         let boardNode = ContactNode()
-        boardNode.position = SCNVector3(0, 0.3, -1)
+        boardNode.position = SCNVector3(0, 0.2, -0.8)
         boardNode.geometry = board
         boardNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: SCNPhysicsShape(geometry: board, options: nil))
         boardNode.physicsBody?.categoryBitMask = 1

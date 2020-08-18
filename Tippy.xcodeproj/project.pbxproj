@@ -18,6 +18,7 @@
 		FE3A2EDE24EB4D9400A755D8 /* ContactNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE3A2EDD24EB4D9400A755D8 /* ContactNode.swift */; };
 		FE3A2EE024EB796100A755D8 /* BallNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE3A2EDF24EB796100A755D8 /* BallNode.swift */; };
 		FE5EE7A524D8E5100014644D /* Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5EE7A424D8E5100014644D /* Math.swift */; };
+		FEC6F56E24ECA12A0088C2E2 /* board.png in Resources */ = {isa = PBXBuildFile; fileRef = FEC6F56D24ECA12A0088C2E2 /* board.png */; };
 		FED6A0EE24D72C9E0017DC3B /* HandGestureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FED6A0ED24D72C9E0017DC3B /* HandGestureProcessor.swift */; };
 /* End PBXBuildFile section */
 
@@ -35,6 +36,7 @@
 		FE3A2EDD24EB4D9400A755D8 /* ContactNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactNode.swift; sourceTree = "<group>"; };
 		FE3A2EDF24EB796100A755D8 /* BallNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallNode.swift; sourceTree = "<group>"; };
 		FE5EE7A424D8E5100014644D /* Math.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Math.swift; sourceTree = "<group>"; };
+		FEC6F56D24ECA12A0088C2E2 /* board.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = board.png; sourceTree = "<group>"; };
 		FED6A0ED24D72C9E0017DC3B /* HandGestureProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HandGestureProcessor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -68,6 +70,7 @@
 		FE0558BD24CF96E70054BE86 /* Tippy */ = {
 			isa = PBXGroup;
 			children = (
+				FEC6F56D24ECA12A0088C2E2 /* board.png */,
 				FE30B01024E8163800CADED3 /* ball.jpeg */,
 				FE5EE7A424D8E5100014644D /* Math.swift */,
 				FED6A0ED24D72C9E0017DC3B /* HandGestureProcessor.swift */,
@@ -145,6 +148,7 @@
 			files = (
 				FE0558C124CF96E70054BE86 /* art.scnassets in Resources */,
 				FE0558CB24CF96E80054BE86 /* LaunchScreen.storyboard in Resources */,
+				FEC6F56E24ECA12A0088C2E2 /* board.png in Resources */,
 				FE0558C824CF96E80054BE86 /* Assets.xcassets in Resources */,
 				FE30B01124E8163800CADED3 /* ball.jpeg in Resources */,
 				FE0558C624CF96E70054BE86 /* Main.storyboard in Resources */,
