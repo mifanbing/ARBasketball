@@ -17,13 +17,15 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
     var ballState: BallState = .still
     var lastIndexTipPoint: CGPoint?
     
-    var motherBallNode = ContactNode()
+    var motherBallNode = BallNode()
     var currentBallCoordinate: SCNVector3!
     
     var redBoxIndexTip = UIView()
     var redBoxIndexMid = UIView()
     var redBoxIndexMidRoot = UIView()
     var redBoxIndexRoot = UIView()
+    
+    var timer = Timer()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -59,10 +61,17 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
             self.loopCoreMLUpdate()
         }
     }
+    
+    @objc func updateTimer() {
+        //print("Timer fired!")
+        motherBallNode.update()
+    }
 }
 
 extension MainViewController: SCNPhysicsContactDelegate {
     func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
+        timer.invalidate()
+        
         let nodeA = (contact.nodeA as! ContactNode)
         let nodeB = (contact.nodeB as! ContactNode)
         if nodeA.contactList.contains(nodeB.name!) || nodeB.contactList.contains(nodeA.name!) {
@@ -72,12 +81,34 @@ extension MainViewController: SCNPhysicsContactDelegate {
         nodeA.contactList.append(nodeB.name!)
         nodeB.contactList.append(nodeA.name!)
         
-        let ballNode = nodeA.name == "ball" ? nodeA : nodeB
+        let ballNode = (nodeA.name == "ball" ? nodeA : nodeB) as! BallNode
         if ballNode.actionKeys.contains("ShootBall") {
             ballNode.removeAction(forKey: "ShootBall")
         }
         
         let normal = contact.contactNormal
+        let normalVelocity = ballNode.ballVelocity.normalComponent(wrt: normal).scale(by: -1)
+        let tangentVelocity = ballNode.ballVelocity.tangentComponent(wrt: normal)
+        let reflectedVelocity = normalVelocity.add(v: tangentVelocity)
+        
+        ballNode.runAction(SCNAction.moveBy(x: CGFloat(reflectedVelocity.x * 2),
+                                            y: CGFloat(reflectedVelocity.y * 2),
+                                            z: CGFloat(reflectedVelocity.z * 2),
+                                            duration: 2)) {
+            self.ballState = .still
+            self.currentBallCoordinate = self.motherBallNode.position
+        }
+    }
+    
+    func physicsWorld(_ world: SCNPhysicsWorld, didEnd contact: SCNPhysicsContact) {
+        let nodeA = (contact.nodeA as! ContactNode)
+        let nodeB = (contact.nodeB as! ContactNode)
+        
+        let ballNode = nodeA.name == "ball" ? nodeA : nodeB
+        ballNode.contactList.removeAll(where: { $0 == "board" })
+        let boardNode = nodeA.name == "board" ? nodeA : nodeB
+        boardNode.contactList.removeAll(where: { $0 == "ball" })
+        
     }
 }
 
@@ -101,11 +132,11 @@ extension MainViewController {
         //setup walls
         let board = SCNPlane(width: 1, height: 1)
         let boardMaterial = SCNMaterial()
-        boardMaterial.diffuse.contents = UIColor.green
+        boardMaterial.diffuse.contents = UIColor(red: 0, green: 1, blue: 0, alpha: 0.8)
         board.materials = [boardMaterial]
         
         let boardNode = ContactNode()
-        boardNode.position = SCNVector3(0, 0.5, -2)
+        boardNode.position = SCNVector3(0, 0.3, -1)
         boardNode.geometry = board
         boardNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: SCNPhysicsShape(geometry: board, options: nil))
         boardNode.physicsBody?.categoryBitMask = 1
@@ -196,6 +227,8 @@ extension MainViewController {
         case .touching:
             if shouldShoot  {
                 print("Shoot")
+                timer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
+            
                 ballState = .shooting
                 let velocities = shootBall(cameraTransform: sceneView.session.currentFrame!.camera.transform)
 
@@ -205,10 +238,13 @@ extension MainViewController {
                                      z: CGFloat(velocity.z * 0.01),
                                      duration: 0.01)
                 }
+                motherBallNode.shootBall(ballVelocity: velocities[0])
+                
                 let sequenceAction = SCNAction.sequence(actions)
                 motherBallNode.runAction(sequenceAction, forKey: "ShootBall") {
                     self.ballState = .still
                     self.currentBallCoordinate = self.motherBallNode.position
+                    self.timer.invalidate()
                     print("Shoot End")
                 }
                 
