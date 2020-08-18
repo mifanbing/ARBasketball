@@ -15,6 +15,7 @@
 		FE0558CB24CF96E80054BE86 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FE0558C924CF96E80054BE86 /* LaunchScreen.storyboard */; };
 		FE30B01124E8163800CADED3 /* ball.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = FE30B01024E8163800CADED3 /* ball.jpeg */; };
 		FE30B01324E9F49C00CADED3 /* HandState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE30B01224E9F49C00CADED3 /* HandState.swift */; };
+		FE3A2EDE24EB4D9400A755D8 /* ContactNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE3A2EDD24EB4D9400A755D8 /* ContactNode.swift */; };
 		FE5EE7A524D8E5100014644D /* Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5EE7A424D8E5100014644D /* Math.swift */; };
 		FED6A0EE24D72C9E0017DC3B /* HandGestureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FED6A0ED24D72C9E0017DC3B /* HandGestureProcessor.swift */; };
 /* End PBXBuildFile section */
@@ -30,6 +31,7 @@
 		FE0558CC24CF96E80054BE86 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FE30B01024E8163800CADED3 /* ball.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = ball.jpeg; sourceTree = "<group>"; };
 		FE30B01224E9F49C00CADED3 /* HandState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandState.swift; sourceTree = "<group>"; };
+		FE3A2EDD24EB4D9400A755D8 /* ContactNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactNode.swift; sourceTree = "<group>"; };
 		FE5EE7A424D8E5100014644D /* Math.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Math.swift; sourceTree = "<group>"; };
 		FED6A0ED24D72C9E0017DC3B /* HandGestureProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HandGestureProcessor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -69,6 +71,7 @@
 				FED6A0ED24D72C9E0017DC3B /* HandGestureProcessor.swift */,
 				FE0558BE24CF96E70054BE86 /* AppDelegate.swift */,
 				FE0558C224CF96E70054BE86 /* MainViewController.swift */,
+				FE3A2EDD24EB4D9400A755D8 /* ContactNode.swift */,
 				FE30B01224E9F49C00CADED3 /* HandState.swift */,
 				FE0558C424CF96E70054BE86 /* Main.storyboard */,
 				FE0558C024CF96E70054BE86 /* art.scnassets */,
@@ -154,6 +157,7 @@
 			files = (
 				FED6A0EE24D72C9E0017DC3B /* HandGestureProcessor.swift in Sources */,
 				FE0558C324CF96E70054BE86 /* MainViewController.swift in Sources */,
+				FE3A2EDE24EB4D9400A755D8 /* ContactNode.swift in Sources */,
 				FE0558BF24CF96E70054BE86 /* AppDelegate.swift in Sources */,
 				FE30B01324E9F49C00CADED3 /* HandState.swift in Sources */,
 				FE5EE7A524D8E5100014644D /* Math.swift in Sources */,

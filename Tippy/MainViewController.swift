@@ -17,7 +17,7 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
     var ballState: BallState = .still
     var lastIndexTipPoint: CGPoint?
     
-    var motherBallNode = SCNNode()
+    var motherBallNode = ContactNode()
     var currentBallCoordinate: SCNVector3!
     
     var redBoxIndexTip = UIView()
@@ -38,18 +38,12 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        sceneView.scene.physicsWorld.contactDelegate = self
+        
         let configuration = ARWorldTrackingConfiguration()
-
         sceneView.session.run(configuration)
-        let motherBall = SCNSphere(radius: CGFloat(0.02))
-        let ballMaterial = SCNMaterial()
-        ballMaterial.diffuse.contents = UIImage(named: "ball.jpeg")
-        motherBall.materials = [ballMaterial]
-        
-        motherBallNode.position = SCNVector3(0.1, 0, -0.3)
-        motherBallNode.geometry = motherBall
-        sceneView.scene.rootNode.addChildNode(motherBallNode)
-        
+
+        setupNodes()
         loopCoreMLUpdate()
     }
     
@@ -67,7 +61,60 @@ class MainViewController: UIViewController, ARSCNViewDelegate {
     }
 }
 
+extension MainViewController: SCNPhysicsContactDelegate {
+    func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
+        let nodeA = (contact.nodeA as! ContactNode)
+        let nodeB = (contact.nodeB as! ContactNode)
+        if nodeA.contactList.contains(nodeB.name!) || nodeB.contactList.contains(nodeA.name!) {
+            return
+        }
+        
+        nodeA.contactList.append(nodeB.name!)
+        nodeB.contactList.append(nodeA.name!)
+        
+        let ballNode = nodeA.name == "ball" ? nodeA : nodeB
+        if ballNode.actionKeys.contains("ShootBall") {
+            ballNode.removeAction(forKey: "ShootBall")
+        }
+        
+        let normal = contact.contactNormal
+    }
+}
+
 extension MainViewController {
+    func setupNodes() {
+        //setup motherBall
+        let motherBall = SCNSphere(radius: CGFloat(0.02))
+        let ballMaterial = SCNMaterial()
+        ballMaterial.diffuse.contents = UIImage(named: "ball.jpeg")
+        motherBall.materials = [ballMaterial]
+        
+        motherBallNode.position = SCNVector3(0, 0, -0.3)
+        motherBallNode.geometry = motherBall
+        motherBallNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: SCNPhysicsShape(geometry: motherBall, options: nil))
+        motherBallNode.physicsBody?.categoryBitMask = 2
+        motherBallNode.physicsBody?.contactTestBitMask = 1
+        motherBallNode.physicsBody?.collisionBitMask = 1
+        motherBallNode.name = "ball"
+        sceneView.scene.rootNode.addChildNode(motherBallNode)
+        
+        //setup walls
+        let board = SCNPlane(width: 1, height: 1)
+        let boardMaterial = SCNMaterial()
+        boardMaterial.diffuse.contents = UIColor.green
+        board.materials = [boardMaterial]
+        
+        let boardNode = ContactNode()
+        boardNode.position = SCNVector3(0, 0.5, -2)
+        boardNode.geometry = board
+        boardNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: SCNPhysicsShape(geometry: board, options: nil))
+        boardNode.physicsBody?.categoryBitMask = 1
+        boardNode.physicsBody?.contactTestBitMask = 2
+        boardNode.physicsBody?.collisionBitMask = 2
+        boardNode.name = "board"
+        sceneView.scene.rootNode.addChildNode(boardNode)
+    }
+    
     func updateCoreML() {
         guard let pixbuff = sceneView.session.currentFrame?.capturedImage else { return }
         
