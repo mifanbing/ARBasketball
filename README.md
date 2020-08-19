@@ -1,3 +1,3 @@
 Integrate iOS14 hand detection with AR kit.
 
-![alt text](https://github.com/mifanbing/Tipy/blob/master/picture2.png){:height="700px" width="400px"}
+<img src="https://github.com/mifanbing/Tipy/blob/master/picture2.png)" width="400" height="800">
