@@ -48,7 +48,7 @@ If the projection moves 1 unit in the camera, along which direction does the bal
 
 Let \
 ic = k * projectPoint(A1 * iw + B1 * jw + C1 * kw) + (1 - k) * projectPoint(A2 * iw + B2 * jw + C2 * kw) \
-    =  projectPoint(f1(k) * iw + f2(k) * jw + f3(k))\
+   =  projectPoint(f1(k) * iw + f2(k) * jw + f3(k))\
 where fi(k) can be easily calculated.
 
 Take the length of the vector f1(k) ^ 2 + f2(k) ^ 2 + f3(k) ^ 2, take a derivative and you will get k.
@@ -66,7 +66,7 @@ yAxisc = x2 * iw + y2 * jw + z2 * kw
 Move the ball 1 unit along xAxisc and yAxisc separately, and use the projection function:\
 projectPoint(ball.center) = ballCenterCamera\
 projectPoint(ball.center + xAxisc * 1) = ballCenterCamera + x1 * ic + y1 * jc\
-projectPoint(ball.center + yAxisc * 1) = ballCenterCamera + x2 * ic + y2 * jc\
+projectPoint(ball.center + yAxisc * 1) = ballCenterCamera + x2 * ic + y2 * jc
 
 Doing the same trick as before, we can get how the project moves when the ball moves along the camera's x and y axis.
 If the finger tip moves x0 and y0 in the camera frame, we can back out how much the ball need to move along the camera's x and y axis: 2 variables, 2 equations.
