@@ -28,7 +28,7 @@ Let\
 projectPoint(ball.center) = ballCenterCamera (1)\
 projectPoint(ball.center + iw) = ballCenterCamera + x1 * ic + y1 * jc (2)\
 projectPoint(ball.center + jw) = ballCenterCamera + x2 * ic + y2 * jc (3)\
-projectPoint(ball.center + kw) = ballCenterCamera + x3 * ic + y3 * jc (4)\
+projectPoint(ball.center + kw) = ballCenterCamera + x3 * ic + y3 * jc (4)
 
 where iw, jw, kw are the x, y, z axis in world coordinate system, and ic, jc are the x,y axis in camera coordinate system.
 
@@ -58,15 +58,15 @@ Issue 2 Drag the ball with the hand.
 
 We have assumed that the ball moves on a plane parallel to the camera's x-y plane.
 
-Get the vectors of the camera's x and y axis in the world coordinate system:
+Get the vectors of the camera's x and y axis in the world coordinate system:\
 Let\
 xAxisc = x1 * iw + y1 * jw + z1 * kw\
-yAxisc = x2 * iw + y2 * jw + z2 * kw\
+yAxisc = x2 * iw + y2 * jw + z2 * kw
 
-Move the ball 1 unit along xAxisc and yAxisc separately, and use the projection function:
-projectPoint(ball.center) = ballCenterCamera
-projectPoint(ball.center + xAxisc * 1) = ballCenterCamera + x1 * ic + y1 * jc
-projectPoint(ball.center + yAxisc * 1) = ballCenterCamera + x2 * ic + y2 * jc
+Move the ball 1 unit along xAxisc and yAxisc separately, and use the projection function:\
+projectPoint(ball.center) = ballCenterCamera\
+projectPoint(ball.center + xAxisc * 1) = ballCenterCamera + x1 * ic + y1 * jc\
+projectPoint(ball.center + yAxisc * 1) = ballCenterCamera + x2 * ic + y2 * jc\
 
 Doing the same trick as before, we can get how the project moves when the ball moves along the camera's x and y axis.
 If the finger tip moves x0 and y0 in the camera frame, we can back out how much the ball need to move along the camera's x and y axis: 2 variables, 2 equations.
