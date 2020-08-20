@@ -35,7 +35,7 @@ where iw, jw, kw are the x, y, z axis in world coordinate system, and ic, jc are
 Subtract (2), (3), (4) with (1) to get rid of ballCenterCamera, which we don't care:\
 projectPoint(iw) =  x1 * ic + y1 * jc (5)\
 projectPoint(jw) =  x2 * ic + y2 * jc (6)\
-projectPoint(kw) =  x3 * ic + y3 * jc (7)\
+projectPoint(kw) =  x3 * ic + y3 * jc (7)
 
 We only care about 1 direction in the camera frame, so let's cancel out jc from (5), (6), (7):\
 We will get 2 equations:\
@@ -49,7 +49,7 @@ If the projection moves 1 unit in the camera, along which direction does the bal
 Let \
 ic = k * projectPoint(A1 * iw + B1 * jw + C1 * kw) + (1 - k) * projectPoint(A2 * iw + B2 * jw + C2 * kw) \
     =  projectPoint(f1(k) * iw + f2(k) * jw + f3(k))\
-where fi(k) can be easily calculated.\
+where fi(k) can be easily calculated.
 
 Take the length of the vector f1(k) ^ 2 + f2(k) ^ 2 + f3(k) ^ 2, take a derivative and you will get k.
 Then take this vector and intersect it with the ball. The intersection point P is projected on the leftmost/rightmost point of the ball in the camera. projectPoint(P) gives the coordinate in the camera, and we can get the radius from the coodinates of this point and the center.
