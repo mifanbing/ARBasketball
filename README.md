@@ -33,9 +33,14 @@ projectPoint(ball.center + kw) = ballCenterCamera + x3 * ic + y3 * jc (4)
 where iw, jw, kw are the x, y, z axis in world coordinate system, and ic, jc are the x,y axis in camera coordinate system.
 
 Subtract (2), (3), (4) with (1) to get rid of ballCenterCamera, which we don't care:\
-projectPoint(iw) =  x1 * ic + y1 * jc (5)\
-projectPoint(jw) =  x2 * ic + y2 * jc (6)\
-projectPoint(kw) =  x3 * ic + y3 * jc (7)
+projectPoint(ball.center + iw) - projectPoint(ball.center) =  x1 * ic + y1 * jc \
+projectPoint(ball.center + jw) - projectPoint(ball.center) =  x2 * ic + y2 * jc \
+projectPoint(ball.center + kw) - projectPoint(ball.center) =  x3 * ic + y3 * jc 
+
+projectPoint() is not linear, but we can approximate the change near the ball as: 
+projectPoint(iw) @ball =  x1 * ic + y1 * jc (5)\
+projectPoint(jw) @ball =  x2 * ic + y2 * jc (6)\
+projectPoint(kw) @ball =  x3 * ic + y3 * jc (7)
 
 We only care about 1 direction in the camera frame, so let's cancel out jc from (5), (6), (7):\
 We will get 2 equations:\
