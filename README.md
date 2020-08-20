@@ -37,7 +37,7 @@ projectPoint(ball.center + iw) - projectPoint(ball.center) =  x1 * ic + y1 * jc 
 projectPoint(ball.center + jw) - projectPoint(ball.center) =  x2 * ic + y2 * jc \
 projectPoint(ball.center + kw) - projectPoint(ball.center) =  x3 * ic + y3 * jc 
 
-projectPoint() is not linear, but we can approximate the change near the ball as: 
+projectPoint() is not linear, but we can approximate the change near the ball as: \
 projectPoint(iw) @ball =  x1 * ic + y1 * jc (5)\
 projectPoint(jw) @ball =  x2 * ic + y2 * jc (6)\
 projectPoint(kw) @ball =  x3 * ic + y3 * jc (7)
